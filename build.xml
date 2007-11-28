@@ -55,10 +55,11 @@
        management system, while preserving your specific configuration.
   
   Author: Eric Bréchemier
-  Version: 1.0
+  Version: 1.1
   
   History:
     1.0 - File Creation [Nov 23, 2007]
+    1.1 - Added params for MainTest run, added TODO comments [Nov 28, 2007]
   -->
   <property file="my/build.properties" />
   <property file="build.properties" />
@@ -159,6 +160,7 @@
   
   <target name="compile" depends="build-third-party" description="Compile all sources">
     <mkdir dir="${out.classes.dir}" />
+    <!-- TODO: replace platform bootclasspath using MicroEmulator jar -->
     <javac classpathref="compile.classpath" srcdir="${src.java}" destdir="${out.classes.dir}" />
   </target>
   
@@ -182,7 +184,11 @@
     <mkdir dir="${out.test.dir}" />
     <javac classpathref="test.classpath" srcdir="${src.test.java}" destdir="${out.test.dir}" />
     
-    <java classpathref="test.run.classpath" classname="net.sf.jsr272.test.MainTest" />
+    <!-- TODO: run JUnit TextRunner instead -->
+    <java classpathref="test.run.classpath" classname="net.sf.jsr272.test.MainTest">
+      <arg value="42"/><!-- PlatformProviderId -->
+      <arg value="Test!"/><!-- ServiceProviderName -->
+    </java>
   </target>
   
   <target name="run" description="run demo midlets on PC using MicroEmulator">
