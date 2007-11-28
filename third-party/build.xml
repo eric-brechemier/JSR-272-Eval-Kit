@@ -46,16 +46,38 @@
   JSR 272 Eval Kit - Build file to download third party libraries from mirrors
   
   Author: Eric Bréchemier
-  Version: 1.0
+  Version: 1.1
   
   History:
     1.0 - File Creation [Nov 23, 2007]
+    1.1 - Added JXTA and Jadabs for log4j adaptations to J2ME [Nov 28, 2007]
     
   List of Third Party Modules:
-    * "MicroEmulator - a pure Java implementation of J2ME in J2SE."
+    
+    * MicroEmulator - "a pure Java implementation of J2ME in J2SE."
       http://www.microemu.org
+    
     * "JUnit 4.1 Brought to you by Kent Beck, Erich Gamma, and David Saff."
       http://www.junit.org/
+    
+    * JXTA log4jstub
+      "JXTA technology is a set of open protocols that enable any connected device on the network, 
+       ranging from cell phones and wireless PDAs to PCs and servers, to communicate and collaborate 
+       in a P2P manner. "
+      "This product includes software developed by the Sun Microsystems, Inc. for Project JXTA."
+      https://jxta.dev.java.net/
+    
+    * Jadabs log4j-j2me LogCanvas
+      "Jadabs is a dynamic lightweight container for small devices 
+       in a distributed environment" 
+      http://jadabs.berlios.de/
+      https://developer.berlios.de/projects/jadabs
+      http://jadabs.berlios.de/jadabs-cldc/multiproject/log4j-j2me/index.html
+      http://jadabs.berlios.de/jadabs-cldc/multiproject/log4j-j2me/apidocs/index.html
+  
+  TODO: Import CLDCUnit and replace JUnit libraries with CLDCUnit in ./lib
+  TODO: Create Util class deriving from java.io.PrintStream to redirect System.err/System.out to LogCanvas
+        This can be used in combination with log4jstub to actually print to LogCanvas
   -->
   
   <property file="build.properties" />
@@ -74,10 +96,21 @@
     <property name="junit.zip.prefix" value="junit${junit.version}" />
     <property name="junit.download.url" value="http://${junit.mirror.name}.dl.sourceforge.net/sourceforge/junit/${junit.zip.name}" />
     <property name="junit.license.name" value="cpl-v10.html" />
+      <!-- JXTA log4jstub -->
+    <property name="jxta.version" value="2.4.1" />
+    <property name="jxta.archive.name" value="jxta-src-${jxta.version}.tar.gz" />
+    <property name="jxta.archive.prefix" value="jxta-src-${jxta.version}" />
+    <property name="jxta.download.url" value="http://download.java.net/jxta/jxta-jxse/${jxta.version}/${jxta.archive.name}" />
+    <property name="jxta.license.name" value="log4jstub.jxta.license.txt" />
+      <!-- Jadabs log4j-J2me LogCanvas -->
+    <!-- ... ongoing -->
+    <property name="logcanvas.download.url" value="http://cvs.berlios.de/cgi-bin/viewcvs.cgi/*checkout*/jadabs/jadabs-cldc/bundles/log4j-j2me/src/org/apache/log4j/LogCanvas.java?rev=1.1" />
+    <property name="logcanvas.license.name" value="logcanvas.jadabs.license.txt" />
     
   <property name="download.dir" location="download" />
   <property name="bin.dir" location="bin" />
   <property name="lib.dir" location="lib" />
+  <property name="res.dir" location="res" />
   
   <!-- Local Location of MicroEmulator files -->
   <property name="microemu.archive.location" location="${download.dir}/${microemu.archive.name}" />
@@ -87,14 +120,23 @@
   <property name="junit.zip.location" location="${download.dir}/${junit.zip.name}" />
   <property name="junit.license.location" location="${lib.dir}/junit.license.html" />
   
+  <!-- Local Location of JXTA log4jstub files -->
+  <property name="jxta.archive.location" location="${download.dir}/${jxta.archive.name}" />
+  <property name="jxta.license.location" location="${lib.dir}/log4jstub.jxta.license.txt" />
+  <property name="jxta.lib.name" value="log4jstub.jxta-${jxta.version}.jar" />
+  
+  <!-- Local Location of Jadabs-Log4j-J2me LogCanvas files -->
+  <property name="logcanvas.parent.dir.location" location="${bin.dir}/${jadabs.project.name}/${logcanvas.parent.path}" />
+  <property name="logcanvas.file.location" location="${logcanvas.parent.dir.location}/${logcanvas.file.name}" />
+  <property name="logcanvas.license.location" location="${lib.dir}/logcanvas.jadabs.license.txt" />
+  <property name="logcanvas.lib.name" value="logcanvas-${jadabs.version.tag}.jar" />
+  
   <target name="clean" description="Clean up output directories">
     <delete dir="${lib.dir}" />
     <delete dir="${bin.dir}" />
     <delete dir="${download.dir}" />
   </target>
   
-  <target name="get-all" depends="get-microemu, get-junit" description="Download all third party libraries" />
-    
   <target name="init">  
     <mkdir dir="${lib.dir}" />
     <mkdir dir="${bin.dir}" />
@@ -150,4 +192,87 @@
     </copy>
     <copy file="${bin.dir}/${junit.zip.prefix}/${junit.license.name}" tofile="${junit.license.location}" verbose="true" />
   </target>
+  
+  <target name="isJXTACached">
+    <condition property="jxtaCached">
+      <and>
+        <available file="${jxta.archive.location}"/>
+        <available file="${jxta.license.location}"/>
+      </and>
+    </condition>
+  </target>
+  
+  <target name="get-jxta" depends="init, isJXTACached" unless="jxtaCached" 
+    description="Get JXTA log4jstub">
+    <get src="${jxta.download.url}" dest="${jxta.archive.location}"
+      verbose="true" usetimestamp="true" ignoreerrors="true"
+    />
+    <untar compression="gzip" src="${jxta.archive.location}" dest="${bin.dir}" overwrite="false"/>
+    
+    <!-- (inlined below) Build for log4jstub -->
+    <property name="log4jstub.dir.location" location="${bin.dir}/${jxta.archive.prefix}/log4jstub" />
+    <property name="log4jstub.src.location" location="${log4jstub.dir.location}" />
+    <property name="log4jstub.class.location" location="${log4jstub.dir.location}/class" />
+    <property name="log4jstub.lib.location" location="${log4jstub.dir.location}/lib" />
+    <property name="log4jstub.lib.file.location" location="${log4jstub.lib.location}/${jxta.lib.name}" />
+    
+    <mkdir dir="${log4jstub.class.location}" />
+    <javac srcdir="${log4jstub.src.location}" destdir="${log4jstub.class.location}" />
+    <mkdir dir="${log4jstub.lib.location}" />
+    <jar destfile="${log4jstub.lib.file.location}" basedir="${log4jstub.class.location}">
+      <manifest>
+        <attribute name="Built-By" value="jsr272@eric.brechemier.name"/>
+      </manifest>
+    </jar>
+    <copy file="${log4jstub.lib.file.location}" todir="${lib.dir}" verbose="true"/>
+    
+    <copy file="${res.dir}/${jxta.license.name}" tofile="${jxta.license.location}" verbose="true" />
+  </target>
+  
+  <target name="isLogCanvasCached">
+    <condition property="logCanvasCached">
+      <and>
+        <available file="${logcanvas.file.location}"/>
+        <available file="${logcanvas.license.location}"/>
+      </and>
+    </condition>
+  </target>
+  
+  <target name="get-LogCanvas" depends="init, isLogCanvasCached, get-microemu" unless="logCanvasCached" 
+    description="Get Jadabs-Log4j-J2ME LogCanvas">
+    
+    <mkdir dir="${logcanvas.parent.dir.location}" />
+    <get src="${logcanvas.download.url}" dest="${logcanvas.file.location}"
+      verbose="true" usetimestamp="true" ignoreerrors="true"
+    />
+    
+    <!-- (inlined below) Build for LogCanvas -->
+    <property name="logcanvas.dir.location" location="${bin.dir}/${jadabs.project.name}" />
+    <property name="logcanvas.src.location" location="${logcanvas.dir.location}/src" />
+    <property name="logcanvas.class.location" location="${logcanvas.dir.location}/class" />
+    <property name="logcanvas.lib.location" location="${logcanvas.dir.location}/lib" />
+    <property name="logcanvas.lib.file.location" location="${logcanvas.lib.location}/${logcanvas.lib.name}" />
+    
+    <mkdir dir="${logcanvas.class.location}" />
+    
+    <javac srcdir="${logcanvas.src.location}" destdir="${logcanvas.class.location}">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+    <mkdir dir="${logcanvas.lib.location}" />
+    <jar destfile="${logcanvas.lib.file.location}" basedir="${logcanvas.class.location}">
+      <manifest>
+        <attribute name="Built-By" value="jsr272@eric.brechemier.name"/>
+      </manifest>
+    </jar>
+    <copy file="${logcanvas.lib.file.location}" todir="${lib.dir}" verbose="true"/>
+    
+    <copy file="${res.dir}/${logcanvas.license.name}" tofile="${logcanvas.license.location}" verbose="true" />
+  </target>
+  
+  <target name="get-all" depends="get-microemu, get-junit, get-jxta, get-LogCanvas" description="Download all third party libraries" />
+  
 </project>
