@@ -49,6 +49,7 @@ import javax.microedition.broadcast.ServiceContext;
 import javax.microedition.broadcast.ServiceContextListener;
 
 import javax.microedition.broadcast.esg.CommonMetadataSet;
+import javax.microedition.broadcast.esg.DataUnavailableException;
 import javax.microedition.broadcast.esg.ProgramEvent;
 import javax.microedition.broadcast.esg.QueryComposer;
 import javax.microedition.broadcast.esg.QueryException;
@@ -59,8 +60,11 @@ import javax.microedition.broadcast.esg.ServiceGuideListener;
 
 import javax.microedition.broadcast.platform.PlatformProvider;
 import javax.microedition.broadcast.platform.PlatformProviderSelector;
+import javax.microedition.broadcast.platform.PlatformProviderSelectorListener;
 
 import junit.framework.Assert;
+
+import net.sf.jsr272.stub.platform.PlatformProviderSelectorStub;
 
 import net.sf.jsr272.util.ServiceGuideUtil;
 import net.sf.jsr272.util.PlatformProviderSelectorUtil;
@@ -68,20 +72,26 @@ import net.sf.jsr272.util.PlatformProviderSelectorUtil;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class MainTest implements ServiceGuideListener, ServiceContextListener
+public class MainTest implements PlatformProviderSelectorListener, ServiceGuideListener, ServiceContextListener
 {
-  public static String TEST_LOGGER = "";
+  public static final String TEST_LOGGER = "";
+  public static final Level LOG_LEVEL = Level.INFO;
   protected static Logger _log;
   
   public static void main(String[] args)
   {
     _log = Logger.getLogger(TEST_LOGGER);
     Assert.assertNotNull("Logger failed to initialize.",_log);
+    _log.setLevel(LOG_LEVEL);
     
     try
     {
+      _log.info("Tests Started from command line, using PlatformProviderSelectorStub.");
+      
+      PlatformProviderSelectorStub.useSingleton();
+      
       MainTest starter = new MainTest(args);
-      starter.startTest();
+      starter.runTest();
     }
     catch(Exception e)
     {
@@ -96,26 +106,125 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
   protected Service _selectedChannel;
   protected boolean _zappingContextInitialized;
   
+  protected boolean[] _checkPoint;
+  
   public MainTest(String[] args)
   {
     if(args.length!=2)
       throw new IllegalArgumentException("Usage: PlatformProviderId ServiceProviderName");
     
-    int _platformProviderId = Integer.parseInt(args[0]);
-    String _serviceProviderName = args[1];
+    _platformProviderId = Integer.parseInt(args[0]);
+    _serviceProviderName = args[1];
+    
+    _log.info("Starting tests with PlatformProviderId='"+_platformProviderId+"' ServiceProviderName='"+_serviceProviderName+"'");
+    
     _currentESG = null;
     _selectedChannel = null;
     _zappingContextInitialized = false;
+    _checkPoint = new boolean[]
+      {
+        false, //  0: startTest()
+        false, //  1: update(*,*,*)
+        false, //  2: update(*,*,false)
+        false, //  3: serviceGuideUpdated(*,*,*)
+        false, //  4: serviceGuideUpdated(SERVICE_GUIDE_UPDATE_COMPLETED,*,*)
+        false, //  5: updateCompleted()
+        false, //  6: contextUpdate(*,*,*)
+        false, //  7: contextUpdate(ServiceContext.getDefaultContext(),*,*)
+        false, //  8: contextInstanceInitialized(...)
+        false, //  9: serviceSelectionInitiated(...)
+        false, // 10: defaultserviceComponentsSelected(...)
+        false, // 11: serviceComponentsSelectionCompleted(...)
+        false, // 12: playersInitialized(...)
+        false, // 13: playersStarted(...)
+        false  // 14: contextStopped(...)
+      };
   }
 
+  
+  protected void runTest()
+  {
+    // I create a separate thread for the test to catch unexecuted parts
+    // e.g. due to missing callbacks after completion of this test thread.
+    
+    final long MS_TEST_TIME_OUT = 1000;
+    final long MS_SLEEP_DURATION = 100;
+    
+    Thread testThread = new Thread
+    (
+      new Runnable()
+      { 
+        public void run()
+        {
+          startTest();
+        }
+      }
+    );
+    _log.trace("Created Test Thread");
+    testThread.start();
+    _log.trace("Test Thread Started");
+    
+    _log.trace("Test Thread Completed... "+Thread.activeCount()+" Thread(s) still running");
+    
+    long msTime = System.currentTimeMillis();
+    boolean isTimeOut = false;
+    while( Thread.activeCount()>1 && !isTimeOut )
+    {
+      isTimeOut = (System.currentTimeMillis()-msTime>MS_TEST_TIME_OUT);
+      
+      try
+      {
+        _log.trace("Awoken: "+Thread.activeCount()+" Thread(s) still running");
+        Thread.sleep(MS_SLEEP_DURATION);
+      }
+      catch(InterruptedException ie)
+      {
+        Assert.fail( "Thread Interrupted: "+ie.getMessage() );
+      }
+    }
+    
+    _log.trace("Completed: only "+Thread.activeCount()+" Thread remains.");
+    
+    for (int i=0; i<_checkPoint.length; i++)
+    {
+      Assert.assertTrue("Failed to pass at check point ["+i+"]",_checkPoint[i]);
+    }
+    
+    if (isTimeOut)
+    {
+      Assert.fail( "Test Thread should have completed under "+((float)MS_TEST_TIME_OUT)/1000+" seconds." );
+    }
+    
+  }
+  
   protected void startTest()
   {
+    _checkPoint[0] = true;
+    
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // 1. Bootstrap - Select the Operator or "Platform Provider"
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     
     // 1.1 Start discovery for Platform Providers, usually scanning UHF,VHF frequency bands
+    
+    PlatformProviderSelector.addListener(this);
+    
+    // asynchronous call
     PlatformProviderSelector.discover();
+  }
+  
+  // <implements interface="PlatformProviderSelectorListener">
+  
+  public void update(int progress, int found, boolean continuing)
+  {
+    _checkPoint[1] = true;
+    _log.info("Plaform Discovery ["+progress+"% complete] - "+found+" Platform Providers found.");
+    
+    if (continuing)
+      return;
+    
+    _checkPoint[2] = true;
+    PlatformProviderSelector.removeListener(this);
     
     // 1.2 Get the list of Platform Providers (e.g. as announced in ESG Provider List)
     PlatformProvider[] availableProvider = PlatformProviderSelector.getAvailableProviders();
@@ -143,7 +252,7 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
     }
     Assert.assertTrue
       (
-        "Platform "+_platformProviderId+" could not be found. Choose one of ["
+        "Platform '"+_platformProviderId+"' could not be found. Choose one of ["
         +PlatformProviderSelectorUtil.getAvailableProviderListDescription()+"]"
         ,
         providerFound
@@ -166,7 +275,7 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
     }
     Assert.assertNotNull
       (
-        "Service Provider "+_serviceProviderName+" could not be found. Choose one of ["
+        "Service Provider '"+_serviceProviderName+"' could not be found. Choose one of ["
         +ServiceGuideUtil.getAvailableESGListDescription()+"]"
         ,
         _currentESG
@@ -191,10 +300,17 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
     _currentESG.forceUpdate();
   } 
   
+  // </implements>
+  
+  // <implements interface="ServiceGuideListener">
+  
   public void serviceGuideUpdated(String event, ServiceGuideData serviceGuideData, Object eventData)
   {
+    _checkPoint[3] = true;
+    
     if ( SERVICE_GUIDE_UPDATE_COMPLETED.equals(event) )
     {
+      _checkPoint[4] = true;
       _currentESG.removeListener(this);
       updateCompleted();
     }
@@ -205,8 +321,11 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
     }
   }
   
+  // </implements>
+  
   protected void updateCompleted()
   {
+    _checkPoint[5] = true;
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // 3. Query the ESG 
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -230,12 +349,41 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
       );
     
     // 3.2 Iterate over Channels to display the list of Channel Information
-    System.out.println("Channel List");
+    _log.info("Channel List ("+channel.length+" channels)");
     for (int i=0; i<channel.length; i++)
     {
-      String channelName = channel[i].getStringValue(CommonMetadataSet.SERVICE_NAME);
-      String description = channel[i].getStringValue(CommonMetadataSet.SERVICE_DESCRIPTION);
-      System.out.println(i+": "+channelName+" - "+description);
+      String channelName = null;
+      String description = null;
+      
+      // Note: ouch... it hurts to catch this DataUnavailableException for each fiedl
+      //       just in case the data is not present (optional field...)
+      // See: ServiceGuideData
+      // "If the attribute is applicable but there is no data for the given attribute 
+      // then the accessor method throws an (sic) DataUnavailableException."
+      try
+      {
+        channelName = channel[i].getStringValue(CommonMetadataSet.SERVICE_NAME);
+      }
+      catch(DataUnavailableException due)
+      {
+        Assert.fail( "Service Name attribute on channel "+i+" has no value: "+due.getMessage() );
+      }
+      catch(Exception e)
+      {
+        Assert.fail("Unexpected exception: "+e.getMessage() );
+      }
+      
+      
+      try
+      {
+        description = channel[i].getStringValue(CommonMetadataSet.SERVICE_DESCRIPTION);
+      }
+      catch(DataUnavailableException due)
+      {
+        _log.warn( "Service Description attribute on channel "+i+" has no value: "+due.getMessage() );
+      }
+      
+      _log.info(i+": "+channelName+" - "+description);
     }
 
     // 3.3 Query the ESG for current programs
@@ -257,15 +405,61 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
       );
     
     // 3.4 Iterate over Programs to display the current program information on all channels
-    _log.info("Current Programs");
+    _log.info("Current Programs ("+currentProgram.length+" programs)");
     for (int i=0; i<currentProgram.length; i++)
     {
-      String channelName = currentProgram[i].getStringValue(CommonMetadataSet.SERVICE_NAME);
-      Date startTime = currentProgram[i].getDateValue(CommonMetadataSet.PROGRAM_START_TIME);
-      Date endTime = currentProgram[i].getDateValue(CommonMetadataSet.PROGRAM_END_TIME);
-      String title = currentProgram[i].getStringValue(CommonMetadataSet.PROGRAM_NAME);
-      String synopsis = currentProgram[i].getStringValue(CommonMetadataSet.PROGRAM_DESCRIPTION);
-      _log.info(i+": "+channelName+"["+startTime+"-"+endTime+"] "+title+" - "+synopsis);
+      String channelName = null;
+      Date startTime = null;
+      Date endTime = null;
+      String title = null;
+      String synopsis = null;
+      
+      try
+      {
+        channelName = currentProgram[i].getStringValue(CommonMetadataSet.SERVICE_NAME);
+      }
+      catch(DataUnavailableException due)
+      {
+        Assert.fail( "Channel Name attribute on program "+i+" has no value: "+due.getMessage() );
+      }
+      
+      try
+      {
+        startTime = currentProgram[i].getDateValue(CommonMetadataSet.PROGRAM_START_TIME);
+      }
+      catch(DataUnavailableException due)
+      {
+        Assert.fail( "Start Time attribute on program "+i+" has no value: "+due.getMessage() );
+      }
+      
+      try
+      {
+        endTime = currentProgram[i].getDateValue(CommonMetadataSet.PROGRAM_END_TIME);
+      }
+      catch(DataUnavailableException due)
+      {
+        Assert.fail( "End Time attribute on program "+i+" has no value: "+due.getMessage() );
+      }
+      
+      try
+      {
+        title = currentProgram[i].getStringValue(CommonMetadataSet.PROGRAM_NAME);
+      }
+      catch(DataUnavailableException due)
+      {
+        Assert.fail( "Program Title attribute on program "+i+" has no value: "+due.getMessage() );
+      }
+      
+      try
+      {
+        synopsis = currentProgram[i].getStringValue(CommonMetadataSet.PROGRAM_DESCRIPTION);
+      }
+      catch(DataUnavailableException due)
+      {
+        _log.warn( "Program Synopsis attribute on program "+i+" has no value: "+due.getMessage() );
+      }
+      
+      _log.info(i+": "+channelName+" ["+startTime+"-"+endTime+"] "+title+" - "+synopsis);
     }
     
     // 3.5 Select channel to watch, fixed here to the first TV service.
@@ -274,7 +468,17 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
     boolean tvServiceFound = false;
     for (int i=0; i<channel.length && !tvServiceFound; i++)
     {
-      if (  "tv".equals( channel[i].getStringValue(CommonMetadataSet.SERVICE_TYPE_NAME) )  )
+      String channelTypeEnum = null;
+      try
+      {
+        channelTypeEnum = channel[i].getStringValue(CommonMetadataSet.SERVICE_TYPE_NAME);
+      }
+      catch(DataUnavailableException due)
+      {
+        Assert.fail("Service Type Name attribute is not available on channel "+i+".");
+      }
+      
+      if (  "tv".equals( channelTypeEnum )  )
       {
         _selectedChannel = channel[i];
         tvServiceFound = true;
@@ -286,26 +490,50 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
         tvServiceFound
       );
     
+    _log.info("Select TV channel: "+_selectedChannel);
+    
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // 4. Zap to selected channel
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     
     // 4.1 Initialize the Service Context for Zapping
-    ServiceContext zappingContext = ServiceContext.getDefaultContext();
+    ServiceContext zappingContext = null;
+    try
+    {
+      zappingContext = ServiceContext.getDefaultContext();
+    }
+    catch(Exception e)
+    {
+      Assert.fail( "Unexpected exception: "+e.getMessage() );
+    }
+    Assert.assertNotNull
+      (
+        "Default Service Context must not be null.",
+        zappingContext
+      );
+    
     zappingContext.addListener(this);
     
+    // in case media is already playing, before channel selection...
+    if ( zappingContext.getState()==ServiceContext.PRESENTING )
+      contextInstanceInitialized(zappingContext);
   }  
+  
+  // <implements interface="ServiceContextListener">
   
   public void contextUpdate(ServiceContext context, String event, Object data)
   {
+    _checkPoint[6] = true;
+    
     if ( !context.equals( ServiceContext.getDefaultContext() ) )
       return;
+    
+    _checkPoint[7] = true;
     
     if ( CONTEXT_STOPPED.equals(event) )
     {
       if (!_zappingContextInitialized)
       {
-        _zappingContextInitialized = true;
         contextInstanceInitialized(context);
       }
       else
@@ -341,18 +569,27 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
     }
   }
   
+  // </implements>
+  
   protected void contextInstanceInitialized(ServiceContext context)
   {
+    _checkPoint[8] = true;
+    _zappingContextInitialized = true;
+    
     // 4.2 Apply Channel Selection
+    // asynchronous call
     context.select(_selectedChannel);
   }
   
   protected void serviceSelectionInitiated(ServiceContext context)
   {
+    _checkPoint[9] = true;
   }
   
   protected void defaultserviceComponentsSelected(ServiceContext context, ServiceComponent[] component)
   {
+    _checkPoint[10] = true;
+    
     boolean videoComponentFound = false;
     boolean audioComponentFound = false;
     for (int i=0; i<component.length; i++)
@@ -384,24 +621,30 @@ public class MainTest implements ServiceGuideListener, ServiceContextListener
   
   protected void serviceComponentsSelectionCompleted(ServiceContext context)
   {
+    _checkPoint[11] = true;
     // A good place to modify selected components
   }
   
   protected void playersInitialized(ServiceContext context)
   {
+    _checkPoint[12] = true;
   }
   
   protected void playersStarted(ServiceContext context)
   {
+    _checkPoint[13] = true;
+    
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // 5. End the test by stopping the zappingContext
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    
+    // asynchronous call
     context.stop();
   }
   
   protected void contextStopped(ServiceContext context)
   {
+    _checkPoint[14] = true;
+    
     // Test completed
     _log.info("Test Completed.");
   }
