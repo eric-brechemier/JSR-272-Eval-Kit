@@ -13,6 +13,7 @@ package javax.microedition.broadcast.esg;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.microedition.broadcast.UnsupportedOperationException;
 
@@ -120,21 +121,6 @@ public class ServiceGuide
     return lastUpdateTime;
   }
   
-  public ProgramEvent[] findPrograms(Query query)
-    throws QueryException
-  {
-    return findPrograms(query,null,0,0);
-  }
-  
-  public ProgramEvent[] findPrograms(Query query, Attribute[] sortBy, int startOffset, int length)
-    throws QueryException
-  {
-    _checkServiceGuideIsValid();
-    _checkQueryIsValid(query);
-    
-    return _findProgramEvents(query,sortBy,startOffset,length);
-  }
-  
   public Service[] findServices(Query query)
     throws QueryException
   {
@@ -150,6 +136,20 @@ public class ServiceGuide
     return _findServices(query,sortBy,startOffset,length);
   }
   
+  public ProgramEvent[] findPrograms(Query query)
+    throws QueryException
+  {
+    return findPrograms(query,null,0,0);
+  }
+  
+  public ProgramEvent[] findPrograms(Query query, Attribute[] sortBy, int startOffset, int length)
+    throws QueryException
+  {
+    _checkServiceGuideIsValid();
+    _checkQueryIsValid(query);
+    
+    return _findProgramEvents(query,sortBy,startOffset,length);
+  }
   
   
   // ===========================================================
@@ -169,6 +169,9 @@ public class ServiceGuide
   
   protected boolean _isServiceGuideValid()
   {
+    if (_platformProvider==null)
+      return false;
+    
     return _platformProvider.equals( PlatformProviderSelector.getCurrentProvider() );
   }
   
@@ -241,14 +244,24 @@ public class ServiceGuide
   // Extension Point: Default ServiceGuide Singleton
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  // Here I use a variant of the Singleton pattern,
+  // i.e. there is no initialization done "under the hood" 
+  // in _getDefaultServiceGuideSingleton():
+  // the _defaultServiceGuideSingleton must be explicitly 
+  // initialized before the _singleton can be accessed.
+  //
+  // Typically, this would be done in a public static method
+  // of a class extending ServiceGuide, and called by PlatformProviderSelector
+  // instance after a new platform has been selected.
+  
   protected static ServiceGuide _defaultServiceGuideSingleton;
   
   protected static ServiceGuide _getDefaultServiceGuideSingleton()
     throws IllegalStateException
   {
     if (_defaultServiceGuideSingleton==null)
-      _defaultServiceGuideSingleton = new ServiceGuide("Null Service Provider");
-    
+      throw new IllegalStateException("Default Service Guide not initialized during Platform Selection.");
+      
     return _defaultServiceGuideSingleton;
   }
   
@@ -260,6 +273,10 @@ public class ServiceGuide
   protected PlatformProvider _platformProvider;
   protected Hashtable _serviceGuideListener;
   protected Date _latestUpdateDate;
+  protected Vector _resultService;
+  protected Service[] _resultServiceArray;
+  protected Vector _resultProgram;
+  protected ProgramEvent[] _resultProgramArray;
   
   protected ServiceGuide(String serviceProviderName)
     throws IllegalStateException
@@ -270,6 +287,8 @@ public class ServiceGuide
       
     _serviceGuideListener = new Hashtable();
     _serviceProviderName = serviceProviderName;
+    _resultService = new Vector();
+    _resultProgram = new Vector();
   }
   
   protected String _getServiceProviderName()
@@ -382,7 +401,7 @@ public class ServiceGuide
     throws Exception
   {
     // overriding methods should implement update here:
-    // - acquire ESG updated
+    // - acquire updated ESG
     // - update the database and send notifications of modifications
     //   using _notifyServiceGuideListener()
     //   listing individual changes if minor or
@@ -394,33 +413,73 @@ public class ServiceGuide
     return _latestUpdateDate;
   }
   
+  
+  
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Helper Methods: Queries
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  protected Service[] _findServices(Query query, Attribute[] sortBy, int startOffset, int length)
+  {
+    _runQueryOnServices(query, sortBy, startOffset, length);
+    int resultLength = ( length>0 && length<_resultService.size() ? length : _resultService.size() );
+    
+    if (_resultServiceArray==null || _resultServiceArray.length!=resultLength)
+        _resultServiceArray = new Service[resultLength];
+    
+    int resultStartOffset = (startOffset>0 ? startOffset : 0);
+    int resultEndOffset = resultStartOffset + resultLength;
+    for (int i=resultStartOffset; i<resultEndOffset; i++)
+    {
+      _resultServiceArray[i] = (Service)_resultService.elementAt(i);
+    }
+    return _resultServiceArray;
+  }
+  
+  // Warn: keep in sync with code in _findServices
+  // some refactoring may be possible.
+  protected ProgramEvent[] _findProgramEvents(Query query, Attribute[] sortBy, int startOffset, int length)
+  {
+    _runQueryOnPrograms(query, sortBy, startOffset, length);
+    int resultLength = ( length>0 && length<_resultProgram.size() ? length : _resultProgram.size() );
+    
+    if (_resultProgramArray==null || _resultProgramArray.length!=resultLength)
+        _resultProgramArray = new ProgramEvent[resultLength];
+    
+    int resultStartOffset = (startOffset>0 ? startOffset : 0);
+    int resultEndOffset = resultStartOffset + resultLength;
+    for (int i=resultStartOffset; i<resultEndOffset; i++)
+    {
+      _resultProgramArray[i] = (ProgramEvent)_resultProgram.elementAt(i);
+    }
+    return _resultProgramArray;
+  }
+  
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Extension Point: Null Implementation of Queries
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  protected static final ProgramEvent[] _EMPTY_RESULT_PROGRAM_EVENT = new ProgramEvent[0];
-  protected static final Service[]      _EMPTY_RESULT_SERVICE       = new Service[0];
-  protected static final Object[]       _EMPTY_RESULT_VALUES        = new Object[0];
   protected static final MetadataSet    _COMMON_METADATA_SET         = new CommonMetadataSet();
-  
-  protected ProgramEvent[] _findProgramEvents(Query query, Attribute[] sortBy, int startOffset, int length)
-  {
-    return _EMPTY_RESULT_PROGRAM_EVENT;
-  }
-  
-  protected Service[] _findServices(Query query, Attribute[] sortBy, int startOffset, int length)
-  {
-    return _EMPTY_RESULT_SERVICE;
-  }
-  
-  protected Object[] _getAllUniqueValues(Attribute attribute)
-  {
-    return _EMPTY_RESULT_VALUES;
-  }
+  protected static final ProgramEvent[] _EMPTY_RESULT_PROGRAM_EVENT = new ProgramEvent[0];
   
   protected MetadataSet[] _getSupportedMetadataSets()
   {
     return new MetadataSet[]{ _COMMON_METADATA_SET };
+  }
+  
+  protected void _runQueryOnServices(Query query, Attribute[] sortBy, int startOffset, int length)
+  {
+    // in derived class, execute query and update _resultService Vector
+  }
+  
+  protected void _runQueryOnPrograms(Query query, Attribute[] sortBy, int startOffset, int length)
+  {
+    // in derived class, execute query and update _resultProgram Vector
+  }
+  
+  protected Object[] _getAllUniqueValues(Attribute attribute)
+  {
+    throw new UnsupportedOperationException("Operation not supported.");
   }
   
 }
