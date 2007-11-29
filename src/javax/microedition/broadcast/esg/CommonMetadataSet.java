@@ -116,10 +116,10 @@ public class CommonMetadataSet implements MetadataSet
   public static final StringAttribute  PROGRAM_NAME = new StringAttribute("ProgramName");
   // Program Synopsis
   public static final StringAttribute  PROGRAM_DESCRIPTION =  new StringAttribute("ProgramDescription");
-  public static final BooleanAttribute PROGRAM_IS_FREE = new BooleanAttribute("ProgramIsFree");
-  public static final BooleanAttribute PROGRAM_IS_PROTECTED = new BooleanAttribute("ProgramIsProtected");
   public static final DateAttribute    PROGRAM_START_TIME = new DateAttribute("ProgramStartTime");
   public static final DateAttribute    PROGRAM_END_TIME = new DateAttribute("ProgramEndTime");
+  public static final BooleanAttribute PROGRAM_IS_FREE = new BooleanAttribute("ProgramIsFree");
+  public static final BooleanAttribute PROGRAM_IS_PROTECTED = new BooleanAttribute("ProgramIsProtected");
   public static final DateAttribute    PROGRAM_DIST_START = new DateAttribute("ProgramDistStart");
   public static final DateAttribute    PROGRAM_DIST_END = new DateAttribute("ProgramDistEnd");
   public static final StringAttribute  PROGRAM_REL_MATERIAL = new StringAttribute("ProgramRelMaterial");
