@@ -13,6 +13,7 @@ package javax.microedition.broadcast.esg;
 import java.util.Date;
 
 import javax.microedition.broadcast.esg.BooleanAttribute;
+import javax.microedition.broadcast.esg.DataUnavailableException;
 import javax.microedition.broadcast.esg.DateAttribute;
 import javax.microedition.broadcast.esg.MetadataSet;
 import javax.microedition.broadcast.esg.NumericAttribute;
@@ -23,16 +24,31 @@ public interface ServiceGuideData
 {
   public boolean equals(Object data);
   public MetadataSet[] getAvailableMetadataSets();
-  public boolean getBooleanValue(BooleanAttribute attribute);
-  public boolean getBooleanValues(BooleanAttribute attribute);
-  public Date getDateValue(DateAttribute attribute);
-  public Date[] getDateValues(DateAttribute attribute);
-  public double getDoubleValue(NumericAttribute attribute);
-  public double[] getDoubleValues(NumericAttribute attribute);
-  public long getLongValue(NumericAttribute attribute);
-  public long[] getLongValues(NumericAttribute attribute);
-  public Object getObjectValue(ObjectAttribute attribute);
-  public Object[] getObjectValues(ObjectAttribute attribute);
-  public String getStringValue(StringAttribute attribute);
-  public String[] getStringValues(StringAttribute attribute);
+  public boolean getBooleanValue(BooleanAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  // Note: BUG IN THE SPECIFICATION 
+  // public boolean getBooleanValues(BooleanAttribute attribute);
+  // should read
+  public boolean[] getBooleanValues(BooleanAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public Date getDateValue(DateAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public Date[] getDateValues(DateAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public double getDoubleValue(NumericAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public double[] getDoubleValues(NumericAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public long getLongValue(NumericAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public long[] getLongValues(NumericAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public Object getObjectValue(ObjectAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public Object[] getObjectValues(ObjectAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public String getStringValue(StringAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
+  public String[] getStringValues(StringAttribute attribute)
+    throws NullPointerException, IllegalArgumentException, DataUnavailableException;
 }
