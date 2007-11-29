@@ -245,7 +245,7 @@ public class PlatformProviderSelector
   //        must be 100 when discovery has been completed or cancelled.
   protected void _notifyPlatformProviderSelectorListener(int progress)
   {
-    int found = _platformProviderSelectorListener.size();
+    int found = _platformProvider.size();
     boolean continuing = progress<_DISCOVERY_COMPLETE;
     
     for ( Enumeration e = _platformProviderSelectorListener.elements(); e.hasMoreElements(); )
