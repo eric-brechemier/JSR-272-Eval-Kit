@@ -10,6 +10,7 @@
 ===================================================================*/
 package javax.microedition.broadcast.esg;
 
+// Why not abstract??
 public class Query
 {
   // Note: in order to check whether the Query is valid or not,
