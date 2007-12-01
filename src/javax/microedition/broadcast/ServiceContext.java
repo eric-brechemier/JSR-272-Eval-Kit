@@ -10,8 +10,6 @@
 ===================================================================*/
 package javax.microedition.broadcast;
 
-import java.util.Vector;
-
 import javax.microedition.broadcast.BroadcastServiceException;
 import javax.microedition.broadcast.InsufficientResourcesException;
 import javax.microedition.broadcast.ServiceComponent;
@@ -115,7 +113,7 @@ public abstract class ServiceContext
   
   
   public abstract void close()
-    throws java.lang.SecurityException;
+    throws SecurityException;
   
   
   // =================================================
@@ -127,6 +125,9 @@ public abstract class ServiceContext
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   // default ServiceContext instance used to override static methods of the abstract class
+  // WARNING...
+  // The default Service Context Singleton must be set before any call to 
+  // the ServiceContext#_getDefaultServiceContextSingleton() method occurs.
   protected static ServiceContext _defaultServiceContextSingleton;
   
   protected static ServiceContext _getDefaultServiceContextSingleton()
@@ -135,14 +136,6 @@ public abstract class ServiceContext
       throw new NullPointerException("Default Service Context not initialized.");
       
     return _defaultServiceContextSingleton;
-  }
-  
-  // WARNING...
-  // The default Service Context Singleton must be set before any call to 
-  // the ServiceContext#_getDefaultServiceContextSingleton() method occurs.
-  protected static void _setDefaultServiceContextSingleton(ServiceContext serviceContext)
-  {
-    _defaultServiceContextSingleton = serviceContext;
   }
   
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
