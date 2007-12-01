@@ -42,9 +42,12 @@
 */
 package net.sf.jsr272.stub.platform;
 
+import javax.microedition.broadcast.esg.Service;
+
 import javax.microedition.broadcast.platform.PlatformProvider;
 import javax.microedition.broadcast.platform.PlatformProviderSelector;
 
+import net.sf.jsr272.stub.esg.ServiceStub;
 import net.sf.jsr272.stub.esg.ServiceGuideStub;
 
 import net.sf.jsr272.stub.platform.PlatformProviderStub;
@@ -67,6 +70,20 @@ public class PlatformProviderSelectorStub extends PlatformProviderSelector
     
     _singleton = new PlatformProviderSelectorStub();
     _log.info("Initialized PlatformProviderSelectorStub as Singleton.");
+  }
+  
+  // return true if the Service is valid for current Platform Provider
+  // (i.e. not from a different Platform Provider)
+  public static boolean isValid(Service service)
+  {
+    if ( getCurrentProvider()==null )
+      return false;
+    
+    if ( !(service instanceof ServiceStub) )
+      return false;
+    
+    ServiceStub serviceStub = (ServiceStub) service;
+    return (  getCurrentProvider().equals( serviceStub.getPlatformProvider() )  );
   }
   
   protected void _processPlatformDiscovery()
