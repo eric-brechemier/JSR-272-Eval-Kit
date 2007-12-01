@@ -14,6 +14,9 @@ import javax.microedition.broadcast.ServiceContext;
 
 public interface ServiceContextListener
 {
+  // Note: the reason in third argument Object data "is never null"
+  //       but the default value is not defined... maybe REASON_OTHER...
+  //       or REASON_APPLICATION_REQUESTED...
   public static final String CONTEXT_STOPPED = "contextStopped";
   public static final String SELECTION_INITIATED = "selectionInitiated";
   public static final String COMPONENTS_IDENTIFIED = "componentsIdentified";
