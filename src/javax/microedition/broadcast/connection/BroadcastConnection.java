@@ -18,6 +18,10 @@ import javax.microedition.broadcast.connection.BroadcastConnectionListener;
 
 public interface BroadcastConnection extends Connection
 {
+  // Note: according to Generic Connection Framework
+  //       all methods should declare to throw IOException:
+  //       "When the connection has been closed access to all methods 
+  //        except this one will cause an an IOException to be thrown."
   public boolean isAvailable();
   public String getMimeType();
   public Hashtable getProperties();
