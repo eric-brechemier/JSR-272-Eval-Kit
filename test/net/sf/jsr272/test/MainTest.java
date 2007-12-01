@@ -64,6 +64,7 @@ import javax.microedition.broadcast.platform.PlatformProviderSelectorListener;
 
 import junit.framework.Assert;
 
+import net.sf.jsr272.stub.ServiceContextStub;
 import net.sf.jsr272.stub.platform.PlatformProviderSelectorStub;
 
 import net.sf.jsr272.util.ServiceGuideUtil;
@@ -89,6 +90,7 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
       _log.info("Tests Started from command line, using PlatformProviderSelectorStub.");
       
       PlatformProviderSelectorStub.useSingleton();
+      ServiceContextStub.useSingleton();
       
       MainTest starter = new MainTest(args);
       starter.runTest();
@@ -200,6 +202,7 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   protected void startTest()
   {
     _checkPoint[0] = true;
+    _log.trace("Check Point 0");
     
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // 1. Bootstrap - Select the Operator or "Platform Provider"
@@ -218,12 +221,15 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   public void update(int progress, int found, boolean continuing)
   {
     _checkPoint[1] = true;
+    _log.trace("Check Point 1");
     _log.info("Plaform Discovery ["+progress+"% complete] - "+found+" Platform Providers found.");
     
     if (continuing)
       return;
     
     _checkPoint[2] = true;
+    _log.trace("Check Point 2");
+    
     PlatformProviderSelector.removeListener(this);
     
     // 1.2 Get the list of Platform Providers (e.g. as announced in ESG Provider List)
@@ -307,10 +313,12 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   public void serviceGuideUpdated(String event, ServiceGuideData serviceGuideData, Object eventData)
   {
     _checkPoint[3] = true;
+    _log.trace("Check Point 3");
     
     if ( SERVICE_GUIDE_UPDATE_COMPLETED.equals(event) )
     {
       _checkPoint[4] = true;
+      _log.trace("Check Point 4");
       _currentESG.removeListener(this);
       updateCompleted();
     }
@@ -326,6 +334,8 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   protected void updateCompleted()
   {
     _checkPoint[5] = true;
+    _log.trace("Check Point 5");
+    
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // 3. Query the ESG 
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -512,11 +522,17 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
         zappingContext
       );
     
+    // Note: there is an issue here because getDefaultContext is asynchronous
+    //       and the listener cannot be registered before getting the result,
+    //       which means that there is a high risk of missing notification
+    //       of CONTEXT_STOPPED... Could turn around this issue using a timeout...
+    //       but there should be a better way to register the listener,
+    //       e.g. as a parameter of getDefaultContext() / createServiceContext()
     zappingContext.addListener(this);
     
-    // in case media is already playing, before channel selection...
-    if ( zappingContext.getState()==ServiceContext.PRESENTING )
-      contextInstanceInitialized(zappingContext);
+    // in case media was already playing, or CONTEXT_STOPPED was missed:
+    if ( zappingContext.getState()!=ServiceContext.STOPPED )
+      zappingContext.stop();
   }  
   
   // <implements interface="ServiceContextListener">
@@ -524,16 +540,19 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   public void contextUpdate(ServiceContext context, String event, Object data)
   {
     _checkPoint[6] = true;
+    _log.trace("Check Point 6");
     
     if ( !context.equals( ServiceContext.getDefaultContext() ) )
       return;
     
     _checkPoint[7] = true;
+    _log.trace("Check Point 7");
     
     if ( CONTEXT_STOPPED.equals(event) )
     {
       if (!_zappingContextInitialized)
       {
+        _zappingContextInitialized = true;
         contextInstanceInitialized(context);
       }
       else
@@ -574,21 +593,31 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   protected void contextInstanceInitialized(ServiceContext context)
   {
     _checkPoint[8] = true;
-    _zappingContextInitialized = true;
+    _log.trace("Check Point 8");
     
-    // 4.2 Apply Channel Selection
-    // asynchronous call
-    context.select(_selectedChannel);
+    try
+    {
+      // 4.2 Apply Channel Selection
+      // asynchronous call
+      context.select(_selectedChannel);
+    }
+    catch(Exception e)
+    {
+      Assert.fail("Unexpected Error: "+e.getMessage());
+    }
+    
   }
   
   protected void serviceSelectionInitiated(ServiceContext context)
   {
     _checkPoint[9] = true;
+    _log.trace("Check Point 9");
   }
   
   protected void defaultserviceComponentsSelected(ServiceContext context, ServiceComponent[] component)
   {
     _checkPoint[10] = true;
+    _log.trace("Check Point 10");
     
     boolean videoComponentFound = false;
     boolean audioComponentFound = false;
@@ -622,17 +651,21 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   protected void serviceComponentsSelectionCompleted(ServiceContext context)
   {
     _checkPoint[11] = true;
+    _log.trace("Check Point 11");
+    
     // A good place to modify selected components
   }
   
   protected void playersInitialized(ServiceContext context)
   {
     _checkPoint[12] = true;
+    _log.trace("Check Point 12");
   }
   
   protected void playersStarted(ServiceContext context)
   {
     _checkPoint[13] = true;
+    _log.trace("Check Point 13");
     
     // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // 5. End the test by stopping the zappingContext
@@ -644,9 +677,10 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
   protected void contextStopped(ServiceContext context)
   {
     _checkPoint[14] = true;
+    _log.trace("Check Point 14");
     
     // Test completed
-    _log.info("Test Completed.");
+    _log.info("Test Completed Successfully.");
   }
   
   protected void contextClosed(ServiceContext context)
