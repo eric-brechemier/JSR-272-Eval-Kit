@@ -23,6 +23,10 @@ import javax.microedition.broadcast.connection.BroadcastConnection;
 public interface BroadcastFileConnection extends BroadcastConnection, InputConnection
 {
   
+  // Note: according to Generic Connection Framework
+  //       all methods should declare to throw IOException:
+  //       "When the connection has been closed access to all methods 
+  //        except this one will cause an an IOException to be thrown."
   public String getName();
   public String getPath();
   public String getURL();
