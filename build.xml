@@ -170,6 +170,7 @@
   </target>
   
   <target name="doc" description="Generate Javadoc documentation.">
+    <!-- TODO: configure correctly and uncomment
     <mkdir dir="${out.doc.dir}" />
     <javadoc packagenames="${javadoc.packages}" 
       sourcepath="${src.java}" destdir="${out.doc.dir}"
@@ -178,6 +179,7 @@
       bottom="${javadoc.copyright}"
       encoding="${javadoc.src.encoding}" docencoding="${javadoc.out.docencoding}"
     />
+    -->
   </target>
   
   <target name="test" depends="build" description="Compile (and run) all test.">
