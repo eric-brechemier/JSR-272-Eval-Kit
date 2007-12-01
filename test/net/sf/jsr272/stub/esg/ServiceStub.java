@@ -16,13 +16,23 @@ import javax.microedition.broadcast.esg.Service;
 import javax.microedition.broadcast.esg.ServiceGuide;
 import javax.microedition.broadcast.esg.ProgramEvent;
 
+import javax.microedition.broadcast.platform.PlatformProvider;
+
+import net.sf.jsr272.stub.esg.ServiceGuideStub;
+import net.sf.jsr272.stub.esg.ServiceGuideDataStub;
+
 // a stub implementation of Service, 
 // filled with static ProgramEvent data
 public class ServiceStub extends ServiceGuideDataStub implements Service
 {
-  public ServiceStub(ServiceGuide serviceGuide, Hashtable data)
+  public ServiceStub(ServiceGuideStub serviceGuide, Hashtable data)
   {
     super (serviceGuide,data);
+  }
+  
+  public PlatformProvider getPlatformProvider()
+  {
+    return ((ServiceGuideStub)_serviceGuide).getPlatformProvider();
   }
   
   // <implements interface="Service">

@@ -50,14 +50,15 @@ import javax.microedition.broadcast.esg.ProgramEvent;
 import javax.microedition.broadcast.esg.Service;
 import javax.microedition.broadcast.esg.ServiceGuide;
 
-import net.sf.jsr272.stub.esg.ServiceGuideDataStub;
 import net.sf.jsr272.stub.esg.ServiceStub;
+import net.sf.jsr272.stub.esg.ServiceGuideStub;
+import net.sf.jsr272.stub.esg.ServiceGuideDataStub;
 
 public class ProgramEventStub extends ServiceGuideDataStub implements ProgramEvent
 {
   protected ServiceStub _service;
   
-  public ProgramEventStub(ServiceGuide serviceGuide, ServiceStub service, Hashtable data)
+  public ProgramEventStub(ServiceGuideStub serviceGuide, ServiceStub service, Hashtable data)
   {
     super (serviceGuide,data);
     _service = service;

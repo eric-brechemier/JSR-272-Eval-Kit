@@ -53,6 +53,8 @@ import javax.microedition.broadcast.esg.Service;
 import javax.microedition.broadcast.esg.ServiceGuide;
 import javax.microedition.broadcast.esg.ServiceGuideListener;
 
+import javax.microedition.broadcast.platform.PlatformProvider;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -77,6 +79,11 @@ public class ServiceGuideStub extends ServiceGuide
     throws IllegalStateException
   {
     super(serviceProviderName);
+  }
+  
+  public PlatformProvider getPlatformProvider()
+  {
+    return _platformProvider;
   }
   
   protected ServiceStub[] _serviceStub = null;

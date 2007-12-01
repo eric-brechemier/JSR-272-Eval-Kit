@@ -28,13 +28,18 @@ import javax.microedition.broadcast.esg.StringAttribute;
 // filled with static ProgramEvent data
 public class ServiceGuideDataStub implements ServiceGuideData
 {
-  protected ServiceGuide _serviceGuide;
+  protected ServiceGuideStub _serviceGuide;
   protected Hashtable _data;
   
-  public ServiceGuideDataStub(ServiceGuide serviceGuide, Hashtable data)
+  public ServiceGuideDataStub(ServiceGuideStub serviceGuide, Hashtable data)
   {
     _serviceGuide = serviceGuide;
     _data = data;
+  }
+  
+  public ServiceGuideStub getServiceGuide()
+  {
+    return _serviceGuide;
   }
   
   public boolean isDeleted()
