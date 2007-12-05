@@ -55,11 +55,12 @@
        management system, while preserving your specific configuration.
   
   Author: Eric Bréchemier
-  Version: 1.1
+  Version: 1.2
   
   History:
     1.0 - File Creation [Nov 23, 2007]
     1.1 - Added params for MainTest run, added TODO comments [Nov 28, 2007]
+    1.2 - Added creation of release file in dist target [Dec 5, 2007]
   -->
   <property file="my/build.properties" />
   <property file="build.properties" />
@@ -71,6 +72,8 @@
   <property name="out.test.dir" location="${out.dir}/test" />
   <property name="out.lib.dir" location="${out.dir}/lib" />
   <property name="out.doc.dir" location="${out.dir}/doc" />
+  <property name="dist.dir" location="${out.dir}/dist" />
+  <property name="dist.name" value="${lib.name}" />
   
   <property name="javadoc.packages" value="net.sf.jsr272" />
   <property name="javadoc.title" value="The Unofficial JSR 272 Mobile TV API -Evaluation Pack-" />
@@ -124,14 +127,20 @@
   <property name="javadoc.src.encoding" value="UTF-8" />
   <property name="javadoc.out.docencoding" value="UTF-8" />
   
+  <property name="src.dir.name" value="src" />
+  <property name="src.dir" location="${src.dir.name}" />
   <property name="src.java" location="src" />
+  
+  <property name="test.dir.name" value="test" />
+  <property name="test.dir" location="${test.dir.name}" />
   <property name="src.test.java" location="test" />
   
-  <property name="thid.party.dir" location="third-party" />
-  <property name="thid.party.lib.dir" location="${thid.party.dir}/lib" />
+  <property name="third.party.dir.name" value="third-party" />
+  <property name="third.party.dir" location="${third.party.dir.name}" />
+  <property name="third.party.lib.dir" location="${third.party.dir}/lib" />
   
   <path id="compile.classpath">
-    <fileset dir="${thid.party.lib.dir}">
+    <fileset dir="${third.party.lib.dir}">
       <include name="**/*.jar"/>
     </fileset>
   </path>
@@ -155,7 +164,7 @@
   </target>
   
   <target name="build-third-party" description="Build Third Party Libs Dependencies">
-    <ant dir="${thid.party.dir}" inheritAll="false" />
+    <ant dir="${third.party.dir}" inheritAll="false" />
   </target>
   
   <target name="compile" depends="build-third-party" description="Compile all sources">
@@ -193,15 +202,33 @@
     </java>
   </target>
   
-  <target name="run" description="run demo midlets on PC using MicroEmulator">
-    <!-- TODO: run demo midlet using property run.jvmargs -->
-  </target>
-  
-  <target name="dist" description="create distributable demo and libraries">
+  <target name="build-demo" description="build demo midlets">
     <!-- TODO: build demo that can be run in browser Java Applet -->
     <!-- TODO: create preverified/obfuscated jar that can be run in real phone -->
   </target>
   
-  <target name="all" depends="build, test, doc, dist, run" description="Default target (All Tasks)." />
+  <target name="run" description="run demo midlets on PC using MicroEmulator">
+    <!-- TODO: run demo midlet using property run.jvmargs -->
+  </target>
+  
+  <target name="dist" depends="build" description="create distributable project archive">
+    <tstamp>
+      <format property="today.iso" pattern="yyyy-MM-dd" timezone="GMT"/>
+    </tstamp>
+    <delete dir="${dist.dir}" />
+    <mkdir dir="${dist.dir}" />
+    <zip destfile="${dist.dir}/${today.iso}-${dist.name}.zip">
+      <zipfileset prefix="${dist.name}" dir=".">
+        <include name="*"/>
+        <include name="${src.dir.name}/" />
+        <include name="${test.dir.name}/" />
+        <include name="${third.party.dir.name}/*" />
+        <include name="${third.party.dir.name}/download/**" />
+        <include name="${third.party.dir.name}/res/**" />
+      </zipfileset>
+    </zip>
+  </target>
+  
+  <target name="all" depends="build, test, doc, build-demo, run" description="Default target (All Tasks)." />
   
 </project>
