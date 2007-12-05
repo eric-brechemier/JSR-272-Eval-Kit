@@ -74,7 +74,7 @@
   <property name="out.lib.dir" location="${out.dir}/lib" />
   <property name="out.doc.dir" location="${out.dir}/doc" />
   <property name="dist.dir" location="${out.dir}/dist" />
-  <property name="dist.name" value="${lib.name}" />
+  <property name="dist.name" value="jsr272-eval-kit" />
   
   <property name="javadoc.packages" value="net.sf.jsr272" />
   <property name="javadoc.title" value="The Unofficial JSR 272 Mobile TV API -Evaluation Pack-" />
