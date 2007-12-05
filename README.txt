@@ -40,5 +40,5 @@
   - optionally, a low-level API to facilitate JSR-272 implementation
   
 ------------------------------------------------------------------------
-                First release: End of November 2007.
+                First release: December 5th, 2007.
 ------------------------------------------------------------------------
