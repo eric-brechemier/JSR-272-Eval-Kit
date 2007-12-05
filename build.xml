@@ -67,7 +67,8 @@
   
   <property name="lib.name" value="jsr272-eval" />
   
-  <property name="out.dir" location="out" />
+  <property name="out.dir.name" value="out" />
+  <property name="out.dir" location="${out.dir.name}" />
   <property name="out.classes.dir" location="${out.dir}/class" />
   <property name="out.test.dir" location="${out.dir}/test" />
   <property name="out.lib.dir" location="${out.dir}/lib" />
@@ -219,7 +220,8 @@
     <mkdir dir="${dist.dir}" />
     <zip destfile="${dist.dir}/${today.iso}-${dist.name}.zip">
       <zipfileset prefix="${dist.name}" dir=".">
-        <include name="*"/>
+        <include name="*.*"/>
+        <include name="my"/>
         <include name="${src.dir.name}/" />
         <include name="${test.dir.name}/" />
         <include name="${third.party.dir.name}/*" />
