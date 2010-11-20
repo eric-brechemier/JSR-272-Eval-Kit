@@ -46,12 +46,13 @@
   JSR 272 Eval Kit - Build file to download third party libraries from mirrors
   
   Author: Eric Bréchemier
-  Version: 1.2
+  Version: 1.3
   
   History:
     1.0 - File Creation [Nov 23, 2007]
     1.1 - Added JXTA and Jadabs for log4j adaptations to J2ME [Nov 28, 2007]
     1.2 - Modified build to deploy local files (release mode) [Dec 5, 2007]
+    1.3 - Added Saxon and Sun MSV [Jan 02, 2008], fixed [Nov 20, 2010]
     
   List of Third Party Modules:
     
@@ -62,10 +63,11 @@
       http://www.junit.org/
     
     * JXTA log4jstub
-      "JXTA technology is a set of open protocols that enable any connected device on the network, 
-       ranging from cell phones and wireless PDAs to PCs and servers, to communicate and collaborate 
-       in a P2P manner. "
-      "This product includes software developed by the Sun Microsystems, Inc. for Project JXTA."
+      "JXTA technology is a set of open protocols that enable any connected
+      device on the network, ranging from cell phones and wireless PDAs to PCs
+      and servers, to communicate and collaborate in a P2P manner. "
+      "This product includes software developed by the Sun Microsystems, Inc.
+      for Project JXTA."
       https://jxta.dev.java.net/
     
     * Jadabs log4j-j2me LogCanvas
@@ -75,6 +77,18 @@
       https://developer.berlios.de/projects/jadabs
       http://jadabs.berlios.de/jadabs-cldc/multiproject/log4j-j2me/index.html
       http://jadabs.berlios.de/jadabs-cldc/multiproject/log4j-j2me/apidocs/index.html
+      
+    * "The Saxon XSLT and XQuery Processor from Saxonica Limited"
+      Author: Michael H. Kay
+      http://www.saxonica.com/
+    
+    * Sun Multi-Schema Validator
+      "The Sun Multi-Schema XML Validator (MSV) is a Java technology tool to
+      validate XML documents against several kinds of XML schemata. It supports
+      RELAX NG, RELAX Namespace, RELAX Core, TREX, XML DTDs, and a subset of
+      XML Schema Part 1."
+      Author: Kohsuke KAWAGUCHI
+      https://msv.dev.java.net/
   
   TODO: Import CLDCUnit and replace JUnit libraries with CLDCUnit in ./lib
   TODO: Create Util class deriving from java.io.PrintStream to redirect System.err/System.out to LogCanvas
@@ -97,6 +111,22 @@
     <property name="junit.zip.prefix" value="junit${junit.version}" />
     <property name="junit.download.url" value="http://${junit.mirror.name}.dl.sourceforge.net/sourceforge/junit/${junit.zip.name}" />
     <property name="junit.license.name" value="cpl-v10.html" />
+      <!-- Saxon -->
+    <property name="saxon.mirror.name" value="heanet" />
+    <property name="saxon.version" value="b9-0-0-2j" />
+    <property name="saxon.zip.name" value="saxon${saxon.version}.zip" />
+    <property name="saxon.zip.prefix" value="saxon${saxon.version}" />
+    <property name="saxon.download.url" value="http://${saxon.mirror.name}.dl.sourceforge.net/sourceforge/saxon/${saxon.zip.name}" />
+    <property name="saxon.license.url" value="http://www.saxonica.com/documentation/conditions/intro.html" />
+    <property name="saxon.license.other.url" value="http://www.saxonica.com/documentation/conditions/third-party-components.html" />
+      <!-- Sun MSV -->
+    <property name="msv.version" value="20070407" />
+    <property name="msv.zip.name" value="msv.${msv.version}.zip" />
+    <property name="msv.file.release" value="54787" />
+    <property name="msv.zip.prefix" value="msv-${msv.version}" />
+    <property name="msv.download.url" value="msv.download.url=https://msv.dev.java.net/files/documents/61/${msv.file.release}/${msv.zip.name}" />
+    <property name="msv.license.name" value="license.txt" />
+    <property name="msv.license.other.name" value="Apache-LICENSE-1.1.txt" />
       <!-- JXTA log4jstub -->
     <property name="jxta.version" value="2.4.1" />
     <property name="jxta.archive.name" value="jxta-src-${jxta.version}.tar.gz" />
@@ -122,6 +152,18 @@
   <property name="junit.zip.location" location="${download.dir}/${junit.zip.name}" />
   <property name="junit.lib.location" location="${lib.dir}/junit-${junit.version}.jar" />
   <property name="junit.license.location" location="${lib.dir}/junit.license.html" />
+  
+  <!-- Local Location of Saxon files -->
+  <property name="saxon.zip.location" location="${download.dir}/${saxon.zip.name}" />
+  <property name="saxon.lib.location" location="${lib.dir}/saxon9.jar" />
+  <property name="saxon.license.location" location="${lib.dir}/saxon9.license.html" />
+  <property name="saxon.license.other.location" location="${lib.dir}/saxon9.license.other.html" />
+  
+  <!-- Local Location of Sun MSV files -->
+  <property name="msv.zip.location" location="${download.dir}/${msv.zip.name}" />
+  <property name="msv.lib.location" location="${lib.dir}/msv.jar" />
+  <property name="msv.license.location" location="${lib.dir}/msv.license.txt" />
+  <property name="msv.license.other.location" location="${lib.dir}/msv.license.other.txt" />
   
   <!-- Local Location of JXTA log4jstub files -->
   <property name="jxta.archive.location" location="${download.dir}/${jxta.archive.name}" />
@@ -226,6 +268,95 @@
       </fileset>
     </copy>
     <copy file="${bin.dir}/${junit.zip.prefix}/${junit.license.name}" tofile="${junit.license.location}" verbose="true" />
+  </target>
+  
+  <!-- Targets for Saxon -->
+  
+  <target name="isSaxonCached">  
+    <condition property="saxonCached">
+      <and>
+        <available file="${saxon.zip.location}"/>
+        <available file="${saxon.license.location}"/>
+        <available file="${saxon.license.other.location}"/>
+      </and>
+    </condition>
+  </target>
+  
+  <target name="get-saxon" depends="init, isSaxonCached" unless="saxonCached" 
+    description="Get Saxon-B XSLT Processor"
+  >
+    <get src="${saxon.download.url}" dest="${saxon.zip.location}"
+      verbose="true" usetimestamp="true" ignoreerrors="true"
+    />
+    <get src="${saxon.license.url}" dest="${saxon.license.location}"
+      verbose="true" usetimestamp="true" ignoreerrors="true"
+    />
+    <get src="${saxon.license.other.url}" dest="${saxon.license.other.location}"
+      verbose="true" usetimestamp="true" ignoreerrors="true"
+    />
+  </target>
+  
+  <target name="isSaxonDeployed">  
+    <condition property="saxonDeployed">
+      <and>
+        <available file="${saxon.lib.location}"/>
+        <available file="${saxon.license.location}"/>
+        <available file="${saxon.license.other.location}"/>
+      </and>
+    </condition>
+  </target>
+  
+  <target name="deploy-saxon" depends="init, get-saxon, isSaxonDeployed" unless="saxonDeployed" 
+    description="Deploy Saxon"
+  >
+    <unzip src="${saxon.zip.location}" dest="${lib.dir}" overwrite="false" />
+  </target>
+  
+  <!-- Targets for Sun MSV -->
+  
+  <target name="isMSVCached">
+    <condition property="msvCached">
+      <and>
+        <available file="${msv.archive.location}"/>
+      </and>
+    </condition>
+  </target>
+  
+  <target name="get-msv" depends="init, isMSVCached" unless="msvCached" 
+    description="Get Sun MSV"
+  >
+    <get src="${msv.download.url}" dest="${msv.zip.location}"
+      verbose="true" usetimestamp="true" ignoreerrors="true"
+    />
+  </target>
+  
+  <target name="isMSVDeployed">
+    <condition property="msvDeployed">
+      <and>
+        <available file="${msv.lib.location}"/>
+        <available file="${msv.license.location}"/>
+        <available file="${msv.license.other.location}"/>
+      </and>
+    </condition>
+  </target>
+  
+  <target name="deploy-msv" depends="init, get-msv, isMSVDeployed" unless="msvDeployed" 
+    description="Deploy Sun MSV"
+  >
+    <unzip src="${msv.zip.location}" dest="${bin.dir}" overwrite="false" />
+    <copy todir="${lib.dir}" verbose="true">
+      <globmapper from="*.jar" to="msv.*.jar" />
+      <fileset dir="${bin.dir}/${msv.zip.prefix}">
+        <include name="*.jar"/>
+        <exclude name="*-src.jar"/>
+      </fileset>
+    </copy>
+    <copy verbose="true" 
+      file="${bin.dir}/${msv.zip.prefix}/${msv.license.name}" tofile="${msv.license.location}" 
+    />
+    <copy verbose="true" 
+      file="${bin.dir}/${msv.zip.prefix}/${msv.license.other.name}" tofile="${msv.license.other.location}" 
+    />
   </target>
   
   <!-- Targets for JXTA log4jstub -->
@@ -339,6 +470,6 @@
   
   <!-- Main Target -->
   
-  <target name="deploy-all" depends="deploy-microemu, deploy-junit, deploy-jxta, deploy-LogCanvas" description="Deploy all third party components" />
+  <target name="deploy-all" depends="deploy-microemu, deploy-junit, deploy-msv, deploy-saxon, deploy-jxta, deploy-LogCanvas" description="Deploy all third party components" />
   
 </project>
