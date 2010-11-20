@@ -1,7 +1,7 @@
 /* 
 ==================================================================
  JSR 272 Mobile TV API -Evaluation Pack-
- https://github.com/eric-brechemier/JSR-272-Eval-Kit
+ http://sourceforge.net/projects/jsr272/
  
  Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
  Licensed under BSD License and/or MIT License.
@@ -141,6 +141,9 @@ public class MainTest implements PlatformProviderSelectorListener, ServiceGuideL
         false, // 13: playersStarted(...)
         false  // 14: contextStopped(...)
       };
+      
+    // TODO: check synchronization for checkpoint 12
+    //       to fix checkpoint 12 was not reached.
   }
 
   
