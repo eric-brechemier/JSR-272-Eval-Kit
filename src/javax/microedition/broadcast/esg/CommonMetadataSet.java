@@ -25,6 +25,20 @@ public class CommonMetadataSet implements MetadataSet
   //       I chose to keep acronyms capitalized, e.g. ServiceComponentSDPRef.
   
   
+  // Note: there could be an issue related to the fact that JSR 272 specification
+  //       does not define formally the links between the different entities 
+  //       (Program, Purchase, Service...) but rather relies on the potentially
+  //       incompatible definitions of the different underlying standards (DVB-IPDC, 
+  //       OMA-BCAST...) A minimum definition of the links to allow access to the fields
+  //       as specified in JSR 272 CommonMetadataSet could be:
+  //
+  //         Service [1,1] <x>---> [0,*] ServiceComponent
+  //         Service [1,1] <x>---> [0,*] Program
+  //
+  //         Purchase [0,*] <---> [0,*] Service
+  //         Purchase [0,*] <---> [0,*] Program
+  //         Purchase [0,*] <---> [0,*] PurchaseChannel
+  
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // SERVICE_* const are applicable to ProgramEvent, PurchaseObject, Service, ServiceComponent
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,6 +64,12 @@ public class CommonMetadataSet implements MetadataSet
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   public static final StringAttribute  SERVICE_COMPONENT_ACCESS_ID = new StringAttribute("ServiceComponentAccessId");
   public static final StringAttribute  SERVICE_COMPONENT_ACCESS_APP_TYPE = new StringAttribute("ServiceComponentAccessAppType");
+  // Note: SERVICE_COMPONENT_MIME_TYPE seems to be a duplicate of SERVICE_COMPONENT_ACCESS_APP_TYPE
+  public static final StringAttribute  SERVICE_COMPONENT_MIME_TYPE = new StringAttribute("ServiceComponentMimeType");
+  // Note: SERVICE_COMPONENT_DOWNLOAD_FILE_FORMAT would be identical to SERVICE_COMPONENT_MIME_TYPE
+  //       and SERVICE_COMPONENT_ACCESS_APP_TYPE when ServiceComponent#getType() returns 
+  //       ServiceComponent.OTHER (which corresponds to a file or stream)
+  public static final StringAttribute  SERVICE_COMPONENT_DOWNLOAD_FILE_FORMAT = new StringAttribute("ServiceComponentDownloadFileFormat");
   public static final StringAttribute  SERVICE_COMPONENT_KEY_MANAG_SYS = new StringAttribute("ServiceComponentKeyManagSys");
   // Two ways to access the Access information part of Service Description Protocol (SDP) file.
   // 1. (most frequent, most convenient from hanset perspective) "inline"
@@ -82,23 +102,19 @@ public class CommonMetadataSet implements MetadataSet
   public static final NumericAttribute SERVICE_COMPONENT_MAX_AUD_RATE = new NumericAttribute("ServiceComponentMaxAudRate",NumericAttribute.INTEGER_TYPE,false);
   public static final NumericAttribute SERVICE_COMPONENT_AVERAGE_VID_RATE = new NumericAttribute("ServiceComponentAverageVidRate",NumericAttribute.INTEGER_TYPE,false);
   public static final NumericAttribute SERVICE_COMPONENT_MAX_VID_RATE = new NumericAttribute("ServiceComponentMaxVidRate",NumericAttribute.INTEGER_TYPE,false);
-  // Note: SERVICE_COMPONENT_MIME_TYPE would identical to SERVICE_COMPONENT_DOWNLOAD_FILE_FORMAT
-  //       when ServiceComponent#getType() returns ServiceComponent.OTHER (corresponding to a file or stream)
-  public static final StringAttribute  SERVICE_COMPONENT_MIME_TYPE = new StringAttribute("ServiceComponentMimeType");
-  public static final StringAttribute  SERVICE_COMPONENT_DOWNLOAD_FILE_FORMAT = new StringAttribute("ServiceComponentDownloadFileFormat");
-  
   
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // PROGRAM_* const are applicable to ProgramEvent, PurchaseObject, Service, ServiceComponent
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   public static final StringAttribute  PROGRAM_CONTENT_ID = new StringAttribute("ProgramContentId");
+  public static final StringAttribute  PROGRAM_CONTENT_TYPE = new StringAttribute("ProgramContentType");
   // Program Title
   public static final StringAttribute  PROGRAM_CONTENT_NAME = new StringAttribute("ProgramContentName");
   // Program Synopsis
   public static final StringAttribute  PROGRAM_CONTENT_DESCRIPTION = new StringAttribute("ProgramContentDescription");
+  // Note: mismatch in JSR 272 comment: "Reports the content name." should read "Reports the content genre."
   public static final StringAttribute  PROGRAM_CONTENT_GENRE = new StringAttribute("ProgramContentGenre");
   public static final StringAttribute  PROGRAM_CONTENT_PARENTAL_RATING = new StringAttribute("ProgramContentParentalRating");
-  public static final StringAttribute  PROGRAM_CONTENT_TYPE = new StringAttribute("ProgramContentType");
   public static final StringAttribute  PROGRAM_CONTENT_AUX_LOGO = new StringAttribute("ProgramContentAuxLogo");
   public static final StringAttribute  PROGRAM_CONTENT_AUX_SOUND = new StringAttribute("ProgramContentAuxSound");
   public static final StringAttribute  PROGRAM_CONTENT_AUX_CLIP = new StringAttribute("ProgramContentAuxClip");
@@ -135,9 +151,11 @@ public class CommonMetadataSet implements MetadataSet
   //   Note: this could also be a package of events in the case of pay-per-view events.
   // - Purchase Channel, a Portal typically a web site, where you can do the purchase
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Note: strange that this ID is not defined as a URI reference
   public static final StringAttribute  PURCHASE_ID = new StringAttribute("PurchaseId");
   // a String value which could include a complete description, not just a number
   // avoids any rounding issue in displayed price.
+  // Note: it is strange that several prices are allowed while currency is restricted to a single value
   public static final StringAttribute  PURCHASE_PRICE = new StringAttribute("PurchasePrice");
   public static final StringAttribute  PURCHASE_CURRENCY = new StringAttribute("PurchaseCurrency");
   public static final DateAttribute    PURCHASE_VALID_FROM = new DateAttribute("PurchaseValidFrom");
@@ -148,6 +166,7 @@ public class CommonMetadataSet implements MetadataSet
   // ~~~~~~~~~~~~~~
   // Purchase Item
   // ~~~~~~~~~~~~~~
+  // Note: strange that this ID is not defined as a URI reference
   public static final StringAttribute  PURCHASE_ITEM_ID = new StringAttribute("PurchaseItemId");
   public static final StringAttribute  PURCHASE_ITEM_NAME = new StringAttribute("PurchaseItemName");
   public static final StringAttribute  PURCHASE_ITEM_DESCRIPTION = new StringAttribute("PurchaseItemDescription");
@@ -156,6 +175,7 @@ public class CommonMetadataSet implements MetadataSet
   // ~~~~~~~~~~~~~~~~~
   // Purchase Channel
   // ~~~~~~~~~~~~~~~~~
+  // Note: strange that this ID is not defined as a URI reference
   public static final StringAttribute  PURCHASE_CHANNEL_ID = new StringAttribute("PurchaseChannelId");
   public static final StringAttribute  PURCHASE_CHANNEL_NAME = new StringAttribute("PurchaseChannelName");
   public static final StringAttribute  PURCHASE_CHANNEL_DESCRIPTION = new StringAttribute("PurchaseChannelDescription");
