@@ -1,7 +1,7 @@
 /* 
 ==================================================================
  JSR 272 Mobile TV API -Evaluation Pack-
- http://sourceforge.net/projects/jsr272/
+ https://github.com/eric-brechemier/JSR-272-Eval-Kit
  
  Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
  Licensed under BSD License and/or MIT License.

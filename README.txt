@@ -1,6 +1,6 @@
 ================================================================================
                     JSR 272 Mobile TV API -Evaluation Pack-
-     https://github.com/eric-brechemier/JSR-272-Mobile-TV-API-Evaluation-Pack-
+     https://github.com/eric-brechemier/JSR-272-Eval-Kit
 ================================================================================
 ------------------------------------------------------------------------
     The Unofficial Home to JSR 272 Mobile TV API Tests and Evaluation
