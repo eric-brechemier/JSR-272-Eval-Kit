@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+==================================================================
+ JSR 272 Mobile TV API -Evaluation Pack-
+ https://github.com/eric-brechemier/JSR-272-Mobile-TV-API-Evaluation-Pack-
+ 
+ Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
+ Licensed under BSD License and/or MIT License.
+==================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         BSD License
+                             ~~~
+             http://creativecommons.org/licenses/BSD/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                          MIT License
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation
+  files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use,
+  copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following
+  conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-->
+<project name="xml.macro" default="all" basedir=".">
+  <!--
+  JSR 272 Eval Kit - Macro for XSLT and XML Validation in Ant.
+  
+  Author: Eric Bréchemier
+  Version: 1.1
+  
+  History:
+    1.0 - File Creation [Jan 02, 2008]
+    1.1 - Updated validateXml macro, adding pathconvert [Nov 20, 2010]
+  -->
+  <property name="third.party.dir.name" value="third-party" />
+  <property name="third.party.dir" location="../${third.party.dir.name}" />
+  <property name="third.party.lib.dir" location="${third.party.dir}/lib" />
+  
+  <property name="test.dir" location="test" />
+  <property name="xslt.test.dir" location="${test.dir}/xslt" />
+  
+  <property name="out.dir.name" value="out" />
+  <property name="out.dir" location="${out.dir.name}" />
+  
+  <target name="build-third-party" description="Build Third Party Libs Dependencies">
+    <ant dir="${third.party.dir}" inheritAll="false" />
+  </target>
+  
+  <path id="run.classpath">
+    <fileset dir="${third.party.lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+  
+  <!-- TODO: insert this part as well, and create a separate target 
+       for validation of individual file if needed -->
+  <!--
+  <fileset id="input.data.files" dir="${in.file.dir}">
+    <include name="000-input-sample-*.xml"/>
+  </fileset>
+  -->
+  <macrodef name="validateXml" description="validate a set of XML files using an XML Schema">
+    <attribute name="schema" description="path to an XML Schema, or the root of a set of XML Schema files" />
+    <attribute name="refid" description="reference to a fileset of XML files" />
+    <attribute name="pathproperty" default="@{refid}.fileset" description="utility variable to create different property names" />
+    <sequential>
+      <pathconvert pathsep=" " property="@{pathproperty}" refid="@{refid}" />
+      <java failOnError="true" fork="true"
+            classpathref="run.classpath"
+            classname="com.sun.msv.driver.textui.Driver"
+      >
+        <arg line="@{schema}"/>
+        <arg line="${@{pathproperty}}"/>
+      </java>
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="transformXml" description="transform a set of XML files using an XSLT Transformation">
+    <attribute name="in" description="input file or directory where xml files are to be found" />
+    <attribute name="stylesheet" description="path to an XSLT Stylesheet" />
+    <attribute name="options" default="" description="additional options for the transformation" />
+    <attribute name="params" default="" description="key=value pair parameters for the transformation" />
+    <attribute name="out" description="output file or directory where result files will be created" />
+    <attribute name="fork" default="false" description="fork JVM" />
+    <sequential>
+      <java fork="@{fork}" 
+        classpathref="run.classpath" 
+        classname="net.sf.saxon.Transform"
+      >
+        <arg line="@{options}"/>
+        <arg line="-novw"/>
+        <arg line="-o @{out}"/>
+        <arg line="@{in}"/>
+        <arg line="@{stylesheet}"/>
+        <arg line="@{params}"/>
+      </java>
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="transformXmlDir" description="transform all XML files in a directory using XSLT">
+    <attribute name="in" description="input directory where xml files are to be found" />
+    <attribute name="stylesheet" description="path to an XSLT Stylesheet" />
+    <attribute name="options" default="" description="additional options for the transformation" />
+    <attribute name="params" default="" description="key=value pair parameters for the transformation" />
+    <attribute name="out" description="output directory where result files will be created" />
+    <attribute name="prefix" default="result-" description="prefix added to result file names" />
+    <attribute name="suffix" default="" description="suffix added to result file names" />
+    <sequential>
+      <transformXml 
+        in="@{in}"
+        stylesheet="@{stylesheet}"
+        options="@{options}"
+        params="@{params}"
+        out="@{out}"
+        prefix="@{prefix}"
+        suffix="@{suffix}"
+      />
+      <move todir="@{out}" failonerror="false">
+        <fileset dir="@{out}" />
+        <mapper type="glob" from="*" to="@{prefix}*{@suffix}"/>
+      </move>
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="assertEqualXml" description="compare two XML files and fail if different">
+    <attribute name="old" description="reference XML file for the comparison" />
+    <attribute name="new" description="subject XML file for the comparison" />
+    <attribute name="diff" description="output diff file" />
+    <sequential>
+      <transformXml 
+      in="@{new}"
+      stylesheet="${xslt.test.dir}/xmlDiff.xsl" 
+      params="refDoc='@{old}'"
+      out="@{diff}"
+      />
+      <transformXml 
+        in="@{diff}"
+        stylesheet="${xslt.test.dir}/failOnDiff.xsl" 
+        out="/dev/null"
+        fork="true"
+      />
+    </sequential>
+  </macrodef>
+  
+</project>

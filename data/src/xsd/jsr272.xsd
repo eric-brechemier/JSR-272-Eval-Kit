@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+==================================================================
+ JSR 272 Mobile TV API -Evaluation Pack-
+ https://github.com/eric-brechemier/JSR-272-Mobile-TV-API-Evaluation-Pack-
+ 
+ Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
+ Licensed under BSD License and/or MIT License.
+==================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         BSD License
+                             ~~~
+             http://creativecommons.org/licenses/BSD/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                          MIT License
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation
+  files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use,
+  copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following
+  conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+================================================================= -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="eric.brechemier.name/2008-01-02/jsr272"
+  xmlns:jsr272="eric.brechemier.name/2008-01-02/jsr272"
+  attributeFormDefault="qualified" elementFormDefault="qualified"
+>
+  <!-- 
+  XML Schema defining structures compatible with JSR-272 Metamodel (CommonMetadataSet...)
+  -->
+  
+  <xs:element name="esg"                    type="jsr272:ESG" />
+  <xs:element name="service"                type="jsr272:Service" />
+  <xs:element name="serviceComponent"       type="jsr272:ServiceComponent" />
+  <xs:element name="program"                type="jsr272:Program" />
+  <xs:element name="purchase"               type="jsr272:Purchase" />
+  <xs:element name="purchaseChannel"        type="jsr272:PurchaseChannel" />
+  
+  <xs:complexType name="ESG">
+    <xs:choice minOccurs="0" max0ccurs="unbounded">
+      <xs:element ref="jsr272:service" />
+      <xs:element ref="jsr272:serviceComponent" />
+      <xs:element ref="jsr272:program" />
+      <xs:element ref="jsr272:purchase" />
+      <xs:element ref="jsr272:purchaseChannel" />
+    </xs:choice>
+  </xs:complexType>
+  
+  <xs:complexType name="Service">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_NAME</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="type" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_TYPE</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="typeName" type="jsr272:ServiceTypeName" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_TYPE_NAME</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="description" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_DESCRIPTION</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="genre" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_GENRE</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="parentalRating" type="jsr272:ParentalRating" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_PARENTAL_RATING</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="relatedMaterial" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_REL_MATERIAL</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliaryLogo" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_AUX_LOGO</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliarySound" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_AUX_SOUND</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliaryClip" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_AUX_CLIP</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="jsr272:URI" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_ID</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isFree" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_IS_FREE</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isProtected" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_IS_PROTECTED</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  
+  <xs:complexType name="ServiceComponent">
+    <xs:sequence>
+      <xs:element name="contentType" type="jsr272:ContentType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <!-- Note: SERVICE_COMPONENT_ACCESS_APP_TYPE is actually restricted to [0,1], others are unconstrained -->
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_ACCESS_APP_TYPE</xs:appinfo>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_MIME_TYPE</xs:appinfo>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_DOWNLOAD_FILE_FORMAT</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="sdpString" type="jsr272:SDP" min0ccurs="0" max0ccurs="1">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_SDP_STRING</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="sdpStream" type="jsr272:SDP" min0ccurs="0" max0ccurs="1">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_SDP_STREAM</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="language" type="jsr272:LanguageCode" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_LANGUAGE</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="audioLanguage" type="jsr272:LanguageCode" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_AUD_LANG</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="closedCaptionsLanguage" type="jsr272:LanguageCode" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_CLOSED_CAPTIONS_LANG</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="openCaptionsLanguage" type="jsr272:LanguageCode" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_VID_OPEN_CAPTIONS_LANG</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="signedVideoLanguage" type="jsr272:LanguageCode" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_VID_SIGN_LANG</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="jsr272:URI" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_ACCESS_ID</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="keyManagementSystem" type="xs:string"  use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_KEY_MANAG_SYS</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sdpRef" type="jsr272:URI" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_SDP_REF</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="averageAudioRate" type="xs:unsignedInt" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_AVERAGE_AUD_RATE</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="maximumAudioRate" type="xs:unsignedInt" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_MAX_AUD_RATE</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="averageVideoRate" type="xs:unsignedInt" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_AVERAGE_VID_RATE</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="maximumVideoRate" type="xs:unsignedInt" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">SERVICE_COMPONENT_MAX_VID_RATE</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  
+  <xs:complexType name="Program">
+    <xs:sequence>
+      <xs:element name="contentType" type="jsr272:ContentType" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_TYPE</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="name" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_NAME</xs:appinfo>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_NAME</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="description" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_DESCRIPTION</xs:appinfo>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_DESCRIPTION</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="genre" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_GENRE</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="parentalRating" type="jsr272:ParentalRating" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_PARENTAL_RATING</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="relatedMaterial" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_REL_MATERIAL</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliaryLogo" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_AUX_LOGO</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliarySound" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_AUX_SOUND</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliaryClip" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_AUX_CLIP</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="jsr272:URI" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_CONTENT_ID</xs:appinfo>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_ID</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="startTime" type="xs:dateTime" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_START_TIME</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="endTime" type="xs:dateTime" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_END_TIME</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isFree" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_IS_FREE</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isProtected" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_IS_PROTECTED</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="distributionStartTime" type="xs:dateTime" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_DIST_START</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="distributionEndTime" type="xs:dateTime" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PROGRAM_DIST_END</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>  
+  </xs:complexType>
+  
+  <xs:complexType name="Purchase">
+    <xs:sequence>
+      <xs:element name="price" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_PRICE</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="name" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_ITEM_NAME</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="description" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_ITEM_DESCRIPTION</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="parentalRating" type="jsr272:ParentalRating" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_ITEM_PARENTAL_RATING</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="relatedMaterial" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_ITEM_REL_MATERIAL</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliaryLogo" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_AUX_LOGO</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliarySound" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_AUX_SOUND</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="auxiliaryClip" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_AUX_CLIP</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="jsr272:URI" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_ID</xs:appinfo>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_ITEM_ID</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="currency" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_CURRENCY</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="validityStartDate" type="xs:dateTime" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_VALID_FROM</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="validityEndDate" type="xs:dateTime" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_VALID_TO</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  
+  <xs:complexType name="PurchaseChannel">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_CHANNEL_NAME</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="description" type="xs:string" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_CHANNEL_DESCRIPTION</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="portal" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_CHANNEL_PORTAL</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="contact" type="jsr272:URI" min0ccurs="0" max0ccurs="unbounded">
+        <xs:annotation>
+          <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_CHANNEL_CONTACT</xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="jsr272:URI" use="optional">
+      <xs:annotation>
+        <xs:appinfo source="eric.brechemier.name/2008-01-21/jsr272/CommonMetadataSet">PURCHASE_CHANNEL_ID</xs:appinfo>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+    
+  <xs:simpleType name="ServiceTypeName">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="tv"/>
+      <xs:enumeration value="radio"/>
+      <xs:enumeration value="data"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="ParentalRating">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  
+  <xs:simpleType name="URI">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  
+  <xs:simpleType name="SDP">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  
+  <xs:simpleType name="ContentType">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  
+  <xs:simpleType name="LanguageCode">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  
+</xs:schema>

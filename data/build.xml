@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+==================================================================
+ JSR 272 Mobile TV API -Evaluation Pack-
+ https://github.com/eric-brechemier/JSR-272-Mobile-TV-API-Evaluation-Pack-
+ 
+ Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
+ Licensed under BSD License and/or MIT License.
+==================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         BSD License
+                             ~~~
+             http://creativecommons.org/licenses/BSD/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                          MIT License
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Copyright (c) 2007 Eric Bréchemier <jsr272@eric.brechemier.name>
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation
+  files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use,
+  copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following
+  conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-->
+<project name="jsr272.feeds" default="all" basedir=".">
+  <!--
+  JSR 272 Eval Kit - Ant Build file to download third-party daily feeds
+  and build a comprehensive set of metadata suitable for demo.
+  
+  Author: Eric Bréchemier
+  Version: 1.1
+  
+  History:
+    1.0 - File Creation [Jan 02, 2008]
+    1.1 - Fixed date to 2010-09-15 [Nov 20, 2010]
+          (as of 2010-09-15, BBC Backstage data is no longer updated)
+  -->
+  <property name="macrodef.import" location="macrodef.xml" />
+  <import file="${macrodef.import}" />
+  
+  <property file="build.properties" />
+  
+  <property name="src.dir" location="src" />
+  <property name="xslt.src.dir" location="${src.dir}/xslt" />
+  <property name="xsd.src.dir" location="${src.dir}/xsd" />
+  <property name="test.dir" location="test" />
+  <property name="data.test.dir" location="${test.dir}/xml" />
+  
+  <property name="jsr272.schema" location="${xsd.src.dir}/jsr272.xsd" />
+  
+  <property name="out.dir.name" value="out" />
+  <property name="out.dir" location="${out.dir.name}" />
+  
+  <property name="out.bbc.dir" location="${out.dir}/bbc" />
+  <property name="out.bbc.license.terms" location="${out.bbc.dir}/terms_of_use.html" />
+  <property name="out.bbc.license.api" location="${out.bbc.dir}/api_licence.html" />
+  <property name="out.bbc.license.rss" location="${out.bbc.dir}/rss_license.html" />
+  <property name="out.bbc.schema.tva.zip" location="${out.bbc.dir}/tva_schema.zip" />
+  <property name="out.bbc.schema.tva.dir" location="${out.bbc.dir}/tva_schema" />
+  <property name="out.bbc.schema.mpg7" location="${out.bbc.schema.tva.dir}/tva_mpeg7.xsd" />
+  <property name="out.bbc.schema.tva" location="${out.bbc.schema.tva.dir}/tva_metadata_3-1_v131.xsd" />
+  <property name="out.bbc.tvradio.dir" location="${out.bbc.dir}/tvradio" />
+  
+  <target name="clean" description="Clean up output directories.">
+    <delete dir="${out.dir}" />
+  </target>
+  
+  <target name="init" depends="build-third-party" description="Initialize dependencies required by macrodefs" />
+  
+  <target name="test-bbc2jsr272" depends="init" description="Test conversion from BBC TVA to JSR272">
+    <fileset id="jsr272.test.data.files" dir="${data.test.dir}">
+      <include name="jsr272-*.xml" />
+    </fileset>
+    <validateXml schema="${jsr272.schema}" refid="jsr272.test.data.files" />
+    
+  </target>
+  
+  <target name="download-BBC-EPG" depends="init" description="Download BBC Backstage TV Channel Daily Feed">
+    <mkdir dir="${out.bbc.dir}" />
+    <get verbose="true" usetimestamp="true" ignoreerrors="true"
+      src="${bbc.backstage.license.terms}" 
+      dest="${out.bbc.license.terms}"
+    />
+    <get verbose="true" usetimestamp="true" ignoreerrors="true"
+      src="${bbc.backstage.license.api}" 
+      dest="${out.bbc.license.api}"
+    />
+    <get verbose="true" usetimestamp="true" ignoreerrors="true"
+      src="${bbc.backstage.license.rss}" 
+      dest="${out.bbc.license.rss}"
+    />
+    <get verbose="true" usetimestamp="true" ignoreerrors="true"
+      src="${bbc.backstage.schema.tva}" 
+      dest="${out.bbc.schema.tva.zip}"
+    />
+    <unzip overwrite="false"
+      src="${out.bbc.schema.tva.zip}" 
+      dest="${out.bbc.schema.tva.dir}"
+    />
+    <get verbose="true" usetimestamp="true" ignoreerrors="true"
+      src="${bbc.backstage.schema.mpg7}" 
+      dest="${out.bbc.schema.mpg7}"
+    />
+    <!-- Set timezone at GMT-5 to change date at 5:00 GMT, taking into account
+         that data is generated everyday around 4:09 GMT -->
+    <!--tstamp>
+      <format property="today.tvradio" pattern="${bbc.backstage.tvradio.pattern}" timezone="GMT-5"/>
+    </tstamp-->
+    <!-- Fixed to September 15th, 2010 - BBC Backstage data is no longer updated -->
+    <property name="today.tvradio" value="20100915" />
+    <property name="tvradio.file.name" value="${today.tvradio}${bbc.backstage.tvradio.ext}" />
+    <property name="bbc.backstage.tvradio" value="${bbc.backstage.tvradio.base}${tvradio.file.name}" />
+    <property name="out.bbc.tvradio.tar.gz" value="${out.bbc.dir}/${tvradio.file.name}" />
+    <get verbose="true" usetimestamp="true" ignoreerrors="true"
+      src="${bbc.backstage.tvradio}" 
+      dest="${out.bbc.tvradio.tar.gz}"
+    />
+    <untar overwrite="false" compression="gzip"
+      src="${out.bbc.tvradio.tar.gz}" 
+      dest="${out.bbc.tvradio.dir}"
+    />
+    
+    <fileset id="tvradio.data.files" dir="${out.bbc.tvradio.dir}">
+      <include name="**/*.xml" />
+      <exclude name="**/*_cr.xml"/>
+    </fileset>
+    <validateXml schema="${out.bbc.schema.tva}" refid="tvradio.data.files" />
+    
+  </target>
+  
+  <target name="all" depends="download-BBC-EPG" description="Default target (All Tasks)." />
+  
+</project>
