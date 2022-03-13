@@ -1,6 +1,0 @@
-# ignore temporary vim files
-*.swp
-
-# ignore generated repository
-out
-
